@@ -1,0 +1,156 @@
+{% extends 'blog/base.html' %}
+
+{% block title %} {{post.title}} | Blog {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <nav aria-label="breadcrumb" class="mb-4">
+                <a href="{% url 'home' %}" class="text-decoration-none text-muted small transition-all hover-link">
+                    <i class="bi bi-arrow-left"></i> Volver a publicaciones
+                </a>
+            </nav>
+
+            <article class="blog-post">
+                <header class="mb-4 text-center"> <div class="mb-3">
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 fs-7 fw-medium">
+                            {{ post.category }}
+                        </span>
+                    </div>
+                    <h1 class="display-4 fw-extrabold mb-3 lh-sm text-dark">{{ post.title }}</h1>
+                    <div class="text-muted d-flex align-items-center gap-3 justify-content-center small">
+                        <span><i class="bi bi-calendar3 me-1"></i> {{ post.created_at|date:"d M, Y" }}</span>
+                        <span>•</span>
+                        <span><i class="bi bi-clock me-1"></i> Hace {{ post.created_at|timesince }}</span>
+                    </div>
+                </header>
+
+                <hr class="my-4 opacity-25">
+
+                {% if post.image %}
+                <div class="d-flex justify-content-center mb-5 mt-4 p-2 bg-white rounded-4 shadow-sm border">
+                    <figure class="figure m-0 text-center">
+                        <img src="{{post.image.url}}"
+                             class="figure-img img-fluid rounded-3 m-0"
+                             alt="{{post.title}}"
+                             style="max-height: 450px; width: auto; object-fit: contain;">
+                        <figcaption class="figure-caption text-center mt-2 small text-muted italic">
+                            {{ post.title }}
+                        </figcaption>
+                    </figure>
+                </div>
+                {% endif %}
+
+                <div class="lead fw-normal text-secondary mb-5 px-4 py-3 bg-light rounded-3 border-start border-4 border-primary quote-container">
+                    {{ post.intro }}
+                </div>
+
+                <div class="post-body lh-lg fs-5 mb-5 text-dark">
+                    {{ post.body|linebreaks }}
+                </div>
+            </article>
+
+            <hr class="my-5 opacity-25">
+
+            <section id="comments">
+                <h3 class="mb-4 d-flex align-items-center fw-bold">
+                    Comentarios
+                    <span class="badge bg-light text-primary ms-2 fs-6 border">{{ post.comments.count }}</span>
+                </h3>
+
+                <form action="" method="post">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form_label fw_semibold">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {{% if field.help_text %}}
+                            <div class="form-text text-muted">{{ field.help_text }}</div>
+                        {% endif %}
+
+                        {{% for error in field.errors %}}
+                            <div class="invalid-feedback d_block">
+                                {{ error }}
+                            </div>
+                        {{% endfor %}}
+                    </div>
+                    {{% endfor %}}
+
+                    <div class="d-grid gap-2 d-md-felx justify-content-md-ed mt-4">
+                        <button type="reset" class="btn btn-light border px-4">Cancelar</button>
+                        <button type="submit" class="btn btn-primary mb-3">
+                            Publicar Comentario
+                        </button>
+                    </div>
+                </form>
+
+                {% for comment in post.comments.all %}
+                <div class="d-flex mb-4 p-3 rounded-3 hover-bg-light transition-all">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center border border-primary border-opacity-25"
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-person-fill text-primary fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0 fw-bold text-dark">{{ comment.name }}</h6>
+                                <small class="text-muted small">Hace {{ comment.created_at|timesince }}</small>
+                            </div>
+                            <div class="text-muted small mb-2 opacity-75" style="font-size: 0.75rem;">{{ comment.email }}</div>
+                            <p class="mb-0 text-secondary" style="font-size: 0.95rem; line-height: 1.6;">
+                                {{ comment.body }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 bg-light rounded-3 border border-dashed">
+                    <i class="bi bi-chat-left-dots text-muted fs-1"></i>
+                    <p class="text-muted mt-2">Sé el primero en dejar un comentario.</p>
+                </div>
+                {% endfor %}
+            </section>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Tipografía para lectura profesional */
+    .post-body {
+        color: #1a1a1a;
+        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    .post-body p {
+        margin-bottom: 1.75rem;
+    }
+
+    /* Evitar estiramiento de imagen y mejorar calidad visual */
+    .img-fluid {
+        image-rendering: -webkit-optimize-contrast; /* Ayuda un poco en Chrome/Safari */
+        image-rendering: crisp-edges;
+    }
+
+    /* Utilidades extra */
+    .fs-7 { font-size: 0.85rem; }
+    .fw-extrabold { font-weight: 800; }
+    .transition-all { transition: all 0.3s ease-in-out; }
+    .hover-link:hover { color: var(--bs-primary) !important; transform: translateX(-3px); }
+    .hover-bg-light:hover { background-color: #f8f9fa; }
+    .border-dashed { border-style: dashed !important; }
+
+    .quote-container {
+        font-style: italic;
+    }
+</style>
+{% endblock %}
