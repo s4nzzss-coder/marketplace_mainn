@@ -1,11 +1,14 @@
 {% extends 'store/base.html' %}
 
 {% block content %}
+
 <h2>Producto</h2>
-<form method="POST" enctype="multipart/form-data">
+
+<form method="POST" enctype="multipart/form-data">  
     {% csrf_token %}
     {{ form.as_p }}
     <button class="btn btn-primary">Guardar</button>
     <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
 </form>
+
 {% endblock %}
