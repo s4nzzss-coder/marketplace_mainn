@@ -12,6 +12,7 @@
         <div class="d-flex">
             {% if user.is_authenticated %}
                 <span class="text-white me-3">Hola {{ user.username }}</span>
+                <a href="{% url 'cart_detail' %}" class="btn btn-outline-light btn-sm me-2">Carrito</a>
                 {% if user.is_seller %}
                     <a href="{% url 'dashboard' %}" class="btn btn-outline-info btn-sm me-2">Dashboard</a>
                 {% endif %}
@@ -24,6 +25,11 @@
     </div>
 </nav>
 <div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
     {% block content %}{% endblock %}
 </div>
 </body>

@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+from django.contrib import messages
 from .forms import RegisterForm, ProductForm
-from .models import Product
+from .models import Product, Cart, CartItem
 
 def home(request):
     products = Product.objects.select_related('owner').prefetch_related('categories').all()
@@ -74,3 +75,59 @@ def product_delete(request, pk):
         product.delete()
         return redirect('dashboard')
     return render(request, 'store/product_confirm_delete.html', {'product': product})
+
+@login_required
+def cart_detail(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    return render(request, 'store/cart_detail.html', {'cart': cart})
+
+@login_required
+def add_to_cart(request, product_id):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    product = get_object_or_404(Product, id=product_id)
+    
+    if product.stock <= 0:
+        messages.error(request, f"No hay stock de {product.name}")
+        return redirect('cart_detail')
+    
+    cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+    
+    if not created:
+        if cart_item.quantity + 1 > product.stock:
+            messages.error(request, f"No hay suficiente stock. Solo hay {product.stock}")
+            return redirect('cart_detail')
+        cart_item.quantity += 1
+        cart_item.save()
+        messages.success(request, f"Se agregó otra unidad de {product.name}")
+    else:
+        messages.success(request, f"{product.name} agregado al carrito")
+    
+    return redirect('cart_detail')
+
+@login_required
+def remove_from_cart(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    product_name = item.product.name
+    item.delete()
+    messages.success(request, f"{product_name} eliminado del carrito")
+    return redirect('cart_detail')
+
+@login_required
+def update_cart_item(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity'))
+        
+        if quantity > 0:
+            if quantity > item.product.stock:
+                messages.error(request, f"No hay suficiente stock. Solo hay {item.product.stock}")
+                return redirect('cart_detail')
+            item.quantity = quantity
+            item.save()
+            messages.success(request, f"Cantidad actualizada a {quantity}")
+        else:
+            item.delete()
+            messages.success(request, f"{item.product.name} eliminado del carrito")
+    
+    return redirect('cart_detail')

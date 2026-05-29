@@ -12,12 +12,13 @@
             <div class="card-body">
                 <h5>{{ product.name }}</h5>
                 <p>${{ product.price }}</p>
-                <small>Vendedor: {{ product.owner.username }}</small>
+                <small>Stock: {{ product.stock }}</small>
                 <div>
                     {% for cat in product.categories.all %}
                         <span class="badge bg-secondary">{{ cat.name }}</span>
                     {% endfor %}
                 </div>
+                <a href="{% url 'add_to_cart' product.id %}" class="btn btn-success mt-2">Agregar al carrito</a>
             </div>
         </div>
     </div>
